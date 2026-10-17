@@ -11,9 +11,12 @@ Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồn
 - Nhạc nền tự lặp khi kết thúc, bắt đầu từ lần tương tác đầu tiên. Có nút bật/tắt nhạc.
 - Ghi nhớ tiến trình trong trình duyệt; hỗ trợ điện thoại, bàn phím và chế độ giảm chuyển động.
 
+- Photobooth ở góc phải: bật camera, đếm ngược 3 giây mỗi tấm và ghép 4 ảnh từ trên xuống dưới vào khung 20/10. Có đổi camera, chụp lại và tải PNG 720 × 2370 px.
+- Camera chỉ bật sau khi nhấn nút, tự tắt khi chụp xong, đóng photobooth hoặc chuyển ứng dụng. Ảnh được xử lý trên thiết bị, không gửi lên máy chủ.
+
 ## Chạy trang web
 
-Mở `index.html` bằng trình duyệt. Không cần cài thư viện hoặc chạy bước build.
+Không cần cài thư viện hoặc chạy bước build. Photobooth cần HTTPS (như Vercel) hoặc máy chủ `localhost`, và quyền camera của trình duyệt.
 
 Nếu có Python, có thể chạy máy chủ cục bộ:
 
@@ -33,6 +36,8 @@ Trong **Settings → Pages**, chọn **Deploy from a branch**, nhánh **main**, 
 index.html
 style.css
 app.js
+photobooth.css
+photobooth.js
 assets/
   background-music.mp3
   cat-cutout.png

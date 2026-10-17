@@ -11,11 +11,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="photobooth.css">
   <script src="app.js" defer></script>
+  <script src="photobooth.js" defer></script>
 </head>
 <body>
   <audio id="backgroundMusic" src="assets/background-music.mp3" preload="metadata" loop playsinline></audio>
   <button class="music-toggle" data-music-toggle aria-label="Bật nhạc nền" aria-pressed="false" type="button"></button>
+  <button class="photobooth-toggle" id="openPhotobooth" type="button" aria-haspopup="dialog" aria-controls="photobooth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m8 6 1.5-3h5L16 6h4a1 1 0 0 1 1 1v12H3V7a1 1 0 0 1 1-1Z"/><circle cx="12" cy="12" r="3.5"/></svg><span>Photobooth</span></button>
   <div class="atmosphere" aria-hidden="true" id="atmosphere"></div>
   <header class="header">
     <a class="wordmark" href="./" aria-label="Một món quà nho nhỏ dành cho cậu — trang chủ"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27C8 21 3 17 3 11a7 7 0 0 1 13-3 7 7 0 0 1 13 3c0 6-5 10-13 16Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 16q5-7 10 0M16 12v10" fill="none" stroke="currentColor"/></svg><span>một món quà nho nhỏ dành cho cậu</span></a>
@@ -48,6 +51,33 @@
     </div>
     <p class="signature">From w luv H.M.Đ</p>
     <button class="music-toggle" data-music-toggle aria-label="Bật nhạc nền" aria-pressed="false" type="button"></button>
+  </dialog>
+  <dialog id="photobooth" class="photobooth" aria-labelledby="boothTitle" aria-describedby="boothIntro" data-ui>
+    <div class="booth-heading"><div><h2 id="boothTitle">Lưu một chút rạng rỡ.</h2><p id="boothIntro">Bốn khoảnh khắc của cậu, một kỷ niệm 20/10.</p></div><button id="closePhotobooth" class="booth-close" type="button" aria-label="Đóng photobooth">×</button></div>
+    <div class="booth-layout">
+      <div class="booth-camera-panel">
+        <div class="booth-viewfinder" id="boothViewfinder">
+          <video id="boothVideo" autoplay muted playsinline aria-label="Hình xem trước từ camera"></video>
+          <div class="booth-camera-message" id="boothCameraMessage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="m8 6 1.5-3h5L16 6h4a1 1 0 0 1 1 1v12H3V7a1 1 0 0 1 1-1Z"/><circle cx="12" cy="12" r="3.5"/></svg><span>Một nụ cười xinh cho ngày của cậu.</span></div>
+          <span id="boothCountdown" class="booth-countdown" aria-hidden="true" hidden></span>
+          <span class="booth-shot-label" id="boothShotLabel" hidden></span>
+        </div>
+        <p class="booth-status" id="boothStatus" role="status" aria-live="polite">Bật camera rồi tạo dáng nhé. Mỗi ảnh đếm ngược 3 giây.</p>
+        <div class="booth-controls">
+          <button class="booth-primary" id="boothCamera" type="button">Bật camera</button>
+          <button class="booth-primary" id="boothCapture" type="button" hidden>Chụp 4 tấm</button>
+          <button class="booth-secondary" id="boothFlip" type="button" hidden>Đổi camera</button>
+          <button class="booth-secondary" id="boothRetake" type="button" hidden>Chụp lại</button>
+        </div>
+        <p class="booth-privacy">Ảnh chỉ được xử lý trên máy cậu, không tải lên máy chủ.</p>
+      </div>
+      <div class="booth-print-panel">
+        <canvas id="boothStrip" width="720" height="2370" role="img" aria-label="Dải photobooth chủ đề 20/10, bốn ảnh theo thứ tự từ trên xuống dưới"></canvas>
+        <a class="booth-primary booth-save" id="boothSave" download="photobooth-20-10.png" hidden>Lưu ảnh về máy</a>
+        <a class="booth-original" id="boothOriginal" target="_blank" rel="noopener" hidden>Mở ảnh để lưu</a>
+        <p id="boothSaveHint" class="booth-save-hint" hidden>Nếu máy mở ảnh thay vì tải, nhấn giữ ảnh để lưu nhé.</p>
+      </div>
+    </div>
   </dialog>
   <noscript><div class="noscript">Chúc cậu một ngày 20/10 ngập tràn yêu thương, luôn tự tin và rạng rỡ theo cách của riêng mình. Bật JavaScript để khám phá từng bông hoa và mở những tấm thiệp.</div></noscript>
 </body>
