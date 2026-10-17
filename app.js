@@ -19,13 +19,13 @@ const defs=el('defs');
  const grad=el('radialGradient',{id:`rose-${name}`,cx:'44%',cy:'15%',r:'88%'},defs);
  el('stop',{offset:'0%','stop-color':light},grad);el('stop',{offset:'48%','stop-color':mid},grad);el('stop',{offset:'100%','stop-color':dark},grad);
 });
-// Hand-drawn, uneven petals with visible folds instead of concentric circles.
+// Uneven petals use soft shading and pink highlights, without dark contour lines.
 function drawRose(parent,x,y,size,angle=0,index=null){
  const g=el('g',{transform:`translate(${x} ${y}) rotate(${angle}) scale(${size})`},parent);
  if(index!==null){g.classList.add('rose');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.dataset.index=index;g.dataset.wish=index%wishes.length;g.setAttribute('aria-label',`Bông hồng ${index+1}: ${wishes[index%wishes.length][0]}`);el('circle',{r:43,fill:'transparent',class:'focus-ring'},g);}
  const p=el('g',{class:'petals'},g);
  const shape=el('g',{transform:`rotate(${Math.sin((index??3)*7)*8}) scale(1 ${.96+Math.sin(index??2)*.04})`},p);
- el('path',{d:'M-35-14L-38-28Q-26-32-22-40L-6-35Q7-43 19-34L32-31Q36-18 43-12L36 3Q43 17 28 24L19 36Q4 33-4 40L-18 31Q-34 30-33 15L-42 4Z',fill:'#640b23',stroke:'#4b0c20','stroke-width':1},shape);
+ el('path',{d:'M-35-14L-38-28Q-26-32-22-40L-6-35Q7-43 19-34L32-31Q36-18 43-12L36 3Q43 17 28 24L19 36Q4 33-4 40L-18 31Q-34 30-33 15L-42 4Z',fill:'#640b23'},shape);
  const petals=[
  ['M-38-13Q-45-31-26-36Q-18-41-8-34L4-16Q-8-18-16-8Q-26-5-38-13Z','crimson','M-38-24Q-32-35-23-35L-13-32'],
  ['M-8-34Q4-43 22-35Q38-37 39-19L21-7Q11-15-1-12Z','scarlet','M-5-34Q7-39 21-33Q32-34 36-25'],
@@ -41,11 +41,10 @@ function drawRose(parent,x,y,size,angle=0,index=null){
  ['M7 14Q-6 25-16 12Q-22 3-13-5L-2 2Q-8 6-1 11Z','fold','M2 16Q-9 19-13 10Q-18 4-12-1']
  ];
  petals.forEach(([d,tone,rim],i)=>{
-  el('path',{d,fill:`url(#rose-${tone})`,stroke:'#730e2a','stroke-width':1.1,'stroke-linejoin':'round'},shape);
+  el('path',{d,fill:`url(#rose-${tone})`},shape);
   el('path',{d:rim,fill:'none',stroke:i<5?'#f3838d':'#ed6479','stroke-width':1.15,'stroke-linecap':'round',opacity:.8},shape);
  });
- el('path',{d:'M-26-35Q-17-25-16-8M38-25Q27-16 21-7M33 25Q20 22 13 14M-28 28Q-18 18-12 12',fill:'none',stroke:'#541023','stroke-width':1.2,opacity:.7},shape);
- el('path',{d:'M-6-6Q4-13 9-3L3 6-6 4Q-11 1-6-6Z',fill:'url(#rose-fold)',stroke:'#5a0c22','stroke-width':1},shape);
+ el('path',{d:'M-6-6Q4-13 9-3L3 6-6 4Q-11 1-6-6Z',fill:'url(#rose-fold)'},shape);
  el('path',{d:'M-5-5 3-7 6-2 0 2-5-1Z',fill:'#bb2947',stroke:'#ef7283','stroke-width':.8},shape);
  if(index!==null)el('path',{d:'m27-25 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z',fill:'#ffe3ba',class:'viewed-mark'},g);
  return g;
