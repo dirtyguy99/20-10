@@ -28,7 +28,7 @@
       <div class="intro"><h1 id="headline">Một đóa hoa,<br>ngàn yêu thương.</h1><p>Chúc mừng Ngày Phụ nữ Việt Nam <span>20/10</span></p></div>
       <div class="bouquet-scene">
         <aside class="side-note left-note"><span class="tiny-flower" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor"><path d="M16 1v30M1 16h30M5 5l22 22M5 27 27 5"/></svg></span><p>Vì cậu xứng đáng<br>với những điều<br>đẹp đẽ nhất.</p><span class="note-line" aria-hidden="true"></span></aside>
-        <div class="bouquet-wrap" id="bouquetWrap"><svg id="bouquet" viewBox="25 20 550 610" aria-label="Bó hồng đỏ gồm 20 bông hoa. Chọn một bông để mở thiệp." role="group"></svg><span class="flower-tip" id="flowerTip" aria-hidden="true">Mở lời chúc</span></div>
+        <div class="bouquet-wrap" id="bouquetWrap"><svg id="bouquet" viewBox="25 20 550 610" aria-label="Bó hoa hồng đỏ và hồng gồm 20 bông hoa. Chọn một bông để mở thiệp." role="group"></svg><span class="flower-tip" id="flowerTip" aria-hidden="true">Mở lời chúc</span></div>
         <aside class="side-note right-note"><span class="date">20<span>10</span></span><p>Tháng mười này,<br>gửi cậu cả một<br>vườn yêu thương.</p></aside>
       </div>
       <div class="invitation"><p class="touch-hint"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 12V5a2 2 0 0 1 4 0v5l2-1 5 3-2 8H9l-5-7a2 2 0 0 1 3-2l2 1Z"/><path d="M5 5 3 3m14 2 2-2M11 0v1"/></svg>Chạm vào một bông hoa để nhận lời chúc</p><button class="primary" id="surprise">Mở một lời chúc <span aria-hidden="true">↗</span></button><p class="progress" id="progress" role="status" aria-live="polite">20 bông hồng · 10 điều dịu dàng</p><button class="replay-surprise" id="replaySurprise" hidden>Xem lại bất ngờ ↗</button></div>
@@ -62,17 +62,18 @@
           <span id="boothCountdown" class="booth-countdown" aria-hidden="true" hidden></span>
           <span class="booth-shot-label" id="boothShotLabel" hidden></span>
         </div>
-        <p class="booth-status" id="boothStatus" role="status" aria-live="polite">Bật camera rồi tạo dáng nhé. Mỗi ảnh đếm ngược 3 giây.</p>
+        <p class="booth-status" id="boothStatus" role="status" aria-live="polite">Cậu tự bấm chụp từng tấm nhé. Mỗi lần bấm đếm ngược 3 giây.</p>
         <div class="booth-controls">
           <button class="booth-primary" id="boothCamera" type="button">Bật camera</button>
-          <button class="booth-primary" id="boothCapture" type="button" hidden>Chụp 4 tấm</button>
+          <button class="booth-primary" id="boothCapture" type="button" hidden>Chụp tấm 1 / 4</button>
           <button class="booth-secondary" id="boothFlip" type="button" hidden>Đổi camera</button>
-          <button class="booth-secondary" id="boothRetake" type="button" hidden>Chụp lại</button>
+          <button class="booth-secondary" id="boothUndo" type="button" hidden>Chụp lại tấm vừa rồi</button>
+          <button class="booth-secondary" id="boothRetake" type="button" hidden>Chụp lại cả 4 tấm</button>
         </div>
         <p class="booth-privacy">Ảnh chỉ được xử lý trên máy cậu, không tải lên máy chủ.</p>
       </div>
       <div class="booth-print-panel">
-        <canvas id="boothStrip" width="720" height="2370" role="img" aria-label="Dải photobooth chủ đề 20/10, bốn ảnh theo thứ tự từ trên xuống dưới"></canvas>
+        <canvas id="boothStrip" width="720" height="2200" role="img" aria-label="Dải photobooth Womens Day 20/10: bốn ảnh viền lượn sóng, sticker hoa và nơ, ngôi sao vàng nhạt"></canvas>
         <a class="booth-primary booth-save" id="boothSave" download="photobooth-20-10.png" hidden>Lưu ảnh về máy</a>
         <a class="booth-original" id="boothOriginal" target="_blank" rel="noopener" hidden>Mở ảnh để lưu</a>
         <p id="boothSaveHint" class="booth-save-hint" hidden>Nếu máy mở ảnh thay vì tải, nhấn giữ ảnh để lưu nhé.</p>
