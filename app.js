@@ -19,26 +19,34 @@ const defs=el('defs');
  const grad=el('radialGradient',{id:`rose-${name}`,cx:'44%',cy:'15%',r:'88%'},defs);
  el('stop',{offset:'0%','stop-color':light},grad);el('stop',{offset:'48%','stop-color':mid},grad);el('stop',{offset:'100%','stop-color':dark},grad);
 });
-// Each rose has individually curled petals around a tight, folded heart.
+// Hand-drawn, uneven petals with visible folds instead of concentric circles.
 function drawRose(parent,x,y,size,angle=0,index=null){
  const g=el('g',{transform:`translate(${x} ${y}) rotate(${angle}) scale(${size})`},parent);
  if(index!==null){g.classList.add('rose');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.dataset.index=index;g.dataset.wish=index%wishes.length;g.setAttribute('aria-label',`Bông hồng ${index+1}: ${wishes[index%wishes.length][0]}`);el('circle',{r:43,fill:'transparent',class:'focus-ring'},g);}
  const p=el('g',{class:'petals'},g);
- const variant=(index??2)%3;
- el('path',{d:'M-36-8C-43-22-25-40-11-36C4-45 31-34 32-20C45-9 38 17 25 23C14 41-12 39-23 28C-41 24-44 3-36-8Z',fill:'#650b22'},p);
- const petal='M-25-8C-38-15-35-29-22-33C-14-41 0-37 7-33C23-39 37-24 29-12C21-3 8 2 0 13C-5 0-14-3-25-8Z';
- const rim='M-31-22C-29-31-20-35-11-34C-4-35 1-31 7-32C16-35 26-30 29-23';
- [[7,1,0],[6,.77,29],[5,.53,4],[4,.32,37]].forEach(([count,scale,offset],ring)=>{
-  for(let i=0;i<count;i++){
-   const jitter=Math.sin((index??4)*9+i*7+ring)*5;
-   const layer=el('g',{transform:`rotate(${i*360/count+offset+jitter}) scale(${scale} ${scale*(.94+Math.sin(i+ring)*.04)})`},p);
-   const tone=ring===3?'fold':((i+variant+ring)%3===0?'scarlet':(i%2?'velvet':'crimson'));
-   el('path',{d:petal,fill:`url(#rose-${tone})`},layer);
-   el('path',{d:rim,fill:'none',stroke:ring<2?'#f9757d':'#e94b63','stroke-width':.85,'stroke-linecap':'round',opacity:.5},layer);
-   el('path',{d:'M-22-9Q-7-14 0 9Q6-5 22-11',fill:'none',stroke:'#580b21','stroke-width':1,opacity:.35},layer);
-  }
+ const shape=el('g',{transform:`rotate(${Math.sin((index??3)*7)*8}) scale(1 ${.96+Math.sin(index??2)*.04})`},p);
+ el('path',{d:'M-35-14L-38-28Q-26-32-22-40L-6-35Q7-43 19-34L32-31Q36-18 43-12L36 3Q43 17 28 24L19 36Q4 33-4 40L-18 31Q-34 30-33 15L-42 4Z',fill:'#640b23',stroke:'#4b0c20','stroke-width':1},shape);
+ const petals=[
+ ['M-38-13Q-45-31-26-36Q-18-41-8-34L4-16Q-8-18-16-8Q-26-5-38-13Z','crimson','M-38-24Q-32-35-23-35L-13-32'],
+ ['M-8-34Q4-43 22-35Q38-37 39-19L21-7Q11-15-1-12Z','scarlet','M-5-34Q7-39 21-33Q32-34 36-25'],
+ ['M38-25Q48-12 37 5Q46 24 25 31L7 20Q21 12 14-2Q24-13 38-25Z','velvet','M39-18Q44-9 35 4Q42 19 28 27'],
+ ['M33 25Q25 40 5 36L-6 42Q-21 35-24 22L-9 10Q0 20 13 14Z','crimson','M27 31Q16 38 5 33L-5 38Q-15 34-19 27'],
+ ['M-28 28Q-45 23-36 6Q-44-8-37-21L-20-8Q-26 2-12 12Z','velvet','M-33-14Q-38-4-32 6Q-40 21-28 25'],
+ ['M-22-10Q-27-28-12-31Q0-35 9-22L10-9Q-3-12-10 2Z','scarlet','M-22-19Q-22-29-12-28Q-2-33 6-22'],
+ ['M5-26Q23-31 28-14Q34-3 23 7L5 5Q12-4-3-9Z','crimson','M9-25Q22-26 25-13Q30-4 23 3'],
+ ['M25 3Q35 20 17 25Q6 34-8 23L-3 9Q8 15 12 0Z','scarlet','M25 9Q29 19 16 22Q6 29-4 23'],
+ ['M-5 24Q-23 32-30 12Q-36-2-20-10L-7 3Q-13 9-5 24Z','velvet','M-10 25Q-23 26-27 11Q-31 0-21-6'],
+ ['M-14-10Q-13-23 1-20Q10-19 14-10L7-3Q-3-7-9 4Z','crimson','M-11-13Q-9-22 1-17L10-10'],
+ ['M10-13Q24-5 18 9Q14 19 2 14L1 5Q10 2 6-4Z','scarlet','M13-9Q21-2 15 8Q12 14 5 12'],
+ ['M7 14Q-6 25-16 12Q-22 3-13-5L-2 2Q-8 6-1 11Z','fold','M2 16Q-9 19-13 10Q-18 4-12-1']
+ ];
+ petals.forEach(([d,tone,rim],i)=>{
+  el('path',{d,fill:`url(#rose-${tone})`,stroke:'#730e2a','stroke-width':1.1,'stroke-linejoin':'round'},shape);
+  el('path',{d:rim,fill:'none',stroke:i<5?'#f3838d':'#ed6479','stroke-width':1.15,'stroke-linecap':'round',opacity:.8},shape);
  });
- el('path',{d:'M-6-2Q-7-10 1-9Q10-7 7 1Q4 8-3 5Q-8 1-3-3Q2-6 4-1Q4 3 0 3',fill:'#650d23',stroke:'#eb5067','stroke-width':1.4,'stroke-linecap':'round'},p);
+ el('path',{d:'M-26-35Q-17-25-16-8M38-25Q27-16 21-7M33 25Q20 22 13 14M-28 28Q-18 18-12 12',fill:'none',stroke:'#541023','stroke-width':1.2,opacity:.7},shape);
+ el('path',{d:'M-6-6Q4-13 9-3L3 6-6 4Q-11 1-6-6Z',fill:'url(#rose-fold)',stroke:'#5a0c22','stroke-width':1},shape);
+ el('path',{d:'M-5-5 3-7 6-2 0 2-5-1Z',fill:'#bb2947',stroke:'#ef7283','stroke-width':.8},shape);
  if(index!==null)el('path',{d:'m27-25 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z',fill:'#ffe3ba',class:'viewed-mark'},g);
  return g;
 }
@@ -87,7 +95,7 @@ dialog.addEventListener('keydown',e=>{if(e.key==='ArrowRight')renderCard(current
 const cardSvg=document.querySelector('#cardRose');el('path',{d:'M72 145Q62 105 73 63M68 119Q35 119 41 99Q63 95 68 119M69 104Q100 102 101 81Q78 84 69 104',fill:'#78947b',stroke:'#59775e','stroke-width':2},cardSvg);drawRose(cardSvg,71,48,.58,-10);
 const celebrationTitle=document.querySelector('#celebrationTitle');
 let letterIndex=0; const flightWidth=Math.min(innerWidth*.85,660),flightHeight=Math.min(innerHeight*.7,560);
-['Chúc mừng cậu đã nhận','gói đáng iu trọn đờiii'].forEach(line=>{const row=document.createElement('span');row.className='celebration-line';row.setAttribute('aria-hidden','true');line.split(' ').forEach(word=>{const wordSpan=document.createElement('span');wordSpan.className='celebration-word';Array.from(word).forEach(char=>{const letter=document.createElement('span');letter.className='celebration-letter';letter.textContent=char;letter.style.cssText=`--dx:${(rand()-.5)*flightWidth}px;--dy:${(rand()-.5)*flightHeight}px;--orbit-x:${(rand()-.5)*480}px;--orbit-y:${(rand()-.5)*430}px;--sweep-x:${(rand()-.5)*320}px;--sweep-y:${(rand()-.5)*300}px;--turn:${(rand()-.5)*300}deg;--spin-x:${180+rand()*360}deg;--spin-y:${180+rand()*540}deg;--delay:${letterIndex++*.012}s`;wordSpan.append(letter)});row.append(wordSpan,document.createTextNode(' '))});celebrationTitle.append(row)});
+['Chúc mừng cậu đã nhận','gói đáng iu trọn đờiii <3'].forEach(line=>{const row=document.createElement('span');row.className='celebration-line';row.setAttribute('aria-hidden','true');line.split(' ').forEach(word=>{const wordSpan=document.createElement('span');wordSpan.className='celebration-word';Array.from(word).forEach(char=>{const letter=document.createElement('span');letter.className='celebration-letter';letter.textContent=char;letter.style.cssText=`--dx:${(rand()-.5)*flightWidth}px;--dy:${(rand()-.5)*flightHeight}px;--orbit-x:${(rand()-.5)*480}px;--orbit-y:${(rand()-.5)*430}px;--sweep-x:${(rand()-.5)*320}px;--sweep-y:${(rand()-.5)*300}px;--turn:${(rand()-.5)*300}deg;--spin-x:${180+rand()*360}deg;--spin-y:${180+rand()*540}deg;--delay:${letterIndex++*.012}s`;wordSpan.append(letter)});row.append(wordSpan,document.createTextNode(' '))});celebrationTitle.append(row)});
 function showCelebration(){if(seen.size!==wishes.length)return;clearTimeout(celebrationTimer);celebrationTimer=null;celebrationReturn=dialog.open?opener:document.activeElement;if(dialog.open)dialog.close();celebrationShown=true;document.querySelector('#completionNote').hidden=true;try{localStorage.setItem('hoa-thuong-surprise-v2','shown')}catch{}celebration.classList.remove('revealed');if(!celebration.open)celebration.showModal();requestAnimationFrame(()=>requestAnimationFrame(()=>{if(celebration.open)celebration.classList.add('revealed')}));document.querySelector('#closeCelebration').focus();}
 function closeCelebration(){celebration.close();celebration.classList.remove('revealed');celebrationReturn?.focus();}
 document.querySelector('#closeCelebration').addEventListener('click',closeCelebration);document.querySelector('#backToFlowers').addEventListener('click',closeCelebration);document.querySelector('#replaySurprise').addEventListener('click',showCelebration);celebration.addEventListener('cancel',e=>{e.preventDefault();closeCelebration()});
@@ -104,7 +112,3 @@ document.addEventListener('pointerdown',e=>{if(!e.target.closest('[data-music-to
 music.addEventListener('play',syncMusic);music.addEventListener('pause',syncMusic);music.addEventListener('error',syncMusic);syncMusic();
 updateSeen();
 scheduleCelebration(1000);
-
-
-
-

@@ -6,7 +6,7 @@ Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồn
 
 - 20 bông hồng, dùng chung 10 lời chúc. Mỗi lời chúc gắn với hai bông hoa.
 - Chạm vào hoa để mở thiệp; chỉ những lời chúc khác nhau mới được tính vào tiến trình.
-- Xem đủ 10 lời chúc sẽ tự mở màn bất ngờ: chữ vàng bay xoay rồi ghép thành câu “Chúc mừng cậu đã nhận gói đáng iu trọn đờiii”.
+- Xem đủ 10 lời chúc sẽ tự mở màn bất ngờ: chữ vàng bay xoay rồi ghép thành câu “Chúc mừng cậu đã nhận gói đáng iu trọn đờiii <3”.
 - Hai sticker nền trong suốt lắc nhẹ ở trên và dưới dòng chữ.
 - Nhạc nền tự lặp khi kết thúc, bắt đầu từ lần tương tác đầu tiên. Có nút bật/tắt nhạc.
 - Ghi nhớ tiến trình trong trình duyệt; hỗ trợ điện thoại, bàn phím và chế độ giảm chuyển động.
