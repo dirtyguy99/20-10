@@ -10,13 +10,13 @@
   const countdown = $('#boothCountdown'), shotLabel = $('#boothShotLabel');
   const strip = $('#boothStrip'), ctx = strip.getContext('2d');
   const save = $('#boothSave'), original = $('#boothOriginal');
-  const photoWidth = 600, photoHeight = 440, photoX = 60, firstY = 236, pitch = 476;
+  const photoWidth = 600, photoHeight = 600, photoX = 60, firstY = 236, pitch = 636;
   let stream = null, generation = 0, photos = [], imageUrl = null;
   let facing = 'user', shooting = false, requesting = false;
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const readyText = () => `Đã chụp ${photos.length} / 4 tấm. Cậu sẵn sàng thì bấm chụp tấm ${photos.length + 1} nhé.`;
   const sparkleSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  sparkleSvg.id = 'boothSparkles'; sparkleSvg.setAttribute('viewBox', '0 0 600 440');
+  sparkleSvg.id = 'boothSparkles'; sparkleSvg.setAttribute('viewBox', `0 0 ${photoWidth} ${photoHeight}`);
   sparkleSvg.setAttribute('aria-hidden', 'true'); video.after(sparkleSvg);
   view.style.aspectRatio = `${photoWidth} / ${photoHeight}`;
   const scriptFont = document.fonts.load('96px "Great Vibes"').catch(() => []);
@@ -34,7 +34,7 @@
       stickers: [{type: types[i], angle: (Math.random() - .5) * .35}],
       stars: Array.from({length: 8}, (_, j) => ({
         x: j % 2 ? 485 + Math.random() * 90 : 24 + Math.random() * 90,
-        y: 24 + Math.random() * 390, size: 8 + Math.random() * 7, angle: Math.random() * .5
+        y: 24 + Math.random() * (photoHeight - 50), size: 8 + Math.random() * 7, angle: Math.random() * .5
       }))
     }));
     showLiveStars();
@@ -115,13 +115,21 @@
     ctx.stroke(new Path2D('M0 13C-49-12-27-49 0-20C27-48 48-11 0 13M2 16C-43-7-29-43-2-18C25-46 48-10 2 16'));
     ctx.restore();
   }
+  function ribbonFrame(y) {
+    ctx.save(); ctx.translate(photoX, y);
+    ctx.strokeStyle = '#b04d53'; ctx.lineWidth = 2; ctx.lineCap = ctx.lineJoin = 'round';
+    // Two loose red pen strokes with loops at opposite corners, like the reference.
+    ctx.stroke(new Path2D('M-13-10C-43-52-19-43 3 5C86 28 250-9 430 16M3 5C25 120-18 267-37 374'));
+    ctx.stroke(new Path2D('M622 215C584 292 608 442 597 594C643 635 660 628 626 600C608 575 523 619 433 603C328 584 245 617 169 597'));
+    ctx.restore();
+  }
   function drawPaperWords() {
     ctx.save();
-    // The handwriting is printed on the paper behind the photo windows only.
-    ctx.beginPath(); ctx.rect(22, 218, strip.width - 44, 1908); ctx.clip();
+    // Bleed the paper lettering to the left, right and bottom edges; keep the heading clear.
+    ctx.beginPath(); ctx.rect(0, 218, strip.width, strip.height - 218); ctx.clip();
     ctx.font = '44px "Great Vibes", cursive'; ctx.textAlign = 'left';
     ctx.fillStyle = '#ac3e48'; ctx.globalAlpha = .48;
-    for (let row = 0; row < 15; row++) {
+    for (let row = 0; row < Math.ceil((strip.height - 218) / 137) + 2; row++) {
       for (let column = -1; column < 4; column++) {
         ctx.save(); ctx.translate(40 + column * 245 + (row % 2) * 72, 265 + row * 137);
         ctx.rotate(-.22); ctx.fillText("it's always you", 0, 0); ctx.restore();
@@ -152,7 +160,10 @@
     ctx.stroke(new Path2D('M225 209C278 193 378 220 491 201M487 202Q507 195 502 210'));
     for (let i = 0; i < 4; i++) {
       const y = firstY + i * pitch, design = decoration[i];
-      ctx.save(); ctx.clip(scallopedPath(photoX, y, photoWidth, photoHeight));
+      const photoWindow = new Path2D();
+      if (i === 1 || i === 3) photoWindow.rect(photoX, y, photoWidth, photoHeight);
+      else photoWindow.addPath(scallopedPath(photoX, y, photoWidth, photoHeight));
+      ctx.save(); ctx.clip(photoWindow);
       if (photos[i]) ctx.drawImage(photos[i], photoX, y, photoWidth, photoHeight);
       else {
         ctx.fillStyle = '#eae7e5'; ctx.fillRect(photoX, y, photoWidth, photoHeight);
@@ -165,14 +176,15 @@
         design.stars.forEach(s => ctx.fill(starPath(photoX + s.x, y + s.y, s.size, s.angle)));
       }
       ctx.restore();
+      if (i === 1 || i === 3) ribbonFrame(y);
       if (design?.stickers.length) {
-        const x = (i % 2 === 0) !== design.reverse ? 62 : 650;
+        const x = (i === 1 || i === 3) ? 650 : ((i % 2 === 0) !== design.reverse ? 62 : 650);
         sticker(design.stickers[0].type, x, y + 10, design.stickers[0].angle);
         if (design.bow) sticker('bow', x === 62 ? 650 : 62, y + photoHeight - 100, -.12);
         if (i === 2) inkHeart(x === 62 ? 650 : 62, y + photoHeight - 50);
       }
     }
-    // Leave the foot of the strip clean, as requested: no message or signature.
+    // The paper pattern continues to the bottom; there is no separate footer caption or signature.
   }
   function resetDownload() {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
