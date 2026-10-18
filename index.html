@@ -62,9 +62,11 @@
           <span id="boothCountdown" class="booth-countdown" aria-hidden="true" hidden></span>
           <span class="booth-shot-label" id="boothShotLabel" hidden></span>
         </div>
-        <p class="booth-status" id="boothStatus" role="status" aria-live="polite">Cậu tự bấm chụp từng tấm nhé. Mỗi lần bấm đếm ngược 3 giây.</p>
+        <p class="booth-status" id="boothStatus" role="status" aria-live="polite">Cậu có thể bật camera hoặc tải ảnh có sẵn lên nhé.</p>
         <div class="booth-controls">
           <button class="booth-primary" id="boothCamera" type="button">Bật camera</button>
+          <button class="booth-secondary" id="boothUpload" type="button">Tải ảnh lên</button>
+          <input id="boothFileInput" type="file" accept="image/*" multiple hidden>
           <button class="booth-primary" id="boothCapture" type="button" hidden>Chụp tấm 1 / 4</button>
           <button class="booth-secondary" id="boothFlip" type="button" hidden>Đổi camera</button>
           <button class="booth-secondary" id="boothUndo" type="button" hidden>Chụp lại tấm vừa rồi</button>
@@ -74,11 +76,22 @@
       </div>
       <div class="booth-print-panel">
         <canvas id="boothStrip" width="720" height="2200" role="img" aria-label="Dải photobooth Womens Day 20/10: bốn ảnh chữ nhật ngang thẳng hàng trong khung trắng ngà đồng nhất, sticker hoa và nơ, ngôi sao vàng nhạt"></canvas>
+        <div id="boothSlots" class="booth-slots" role="group" aria-label="Chọn tấm ảnh để căn chỉnh hoặc thay ảnh"></div>
+        <p class="booth-slot-hint">Chạm số ảnh để căn chỉnh.</p>
         <a class="booth-primary booth-save" id="boothSave" download="photobooth-20-10.png" hidden>Lưu ảnh về máy</a>
         <a class="booth-original" id="boothOriginal" target="_blank" rel="noopener" hidden>Mở ảnh để lưu</a>
         <p id="boothSaveHint" class="booth-save-hint" hidden>Nếu máy mở ảnh thay vì tải, nhấn giữ ảnh để lưu nhé.</p>
       </div>
     </div>
+  </dialog>
+  <dialog id="boothCrop" class="booth-crop" aria-labelledby="boothCropTitle" aria-describedby="boothCropHelp" data-ui>
+    <div class="booth-crop-heading"><h2 id="boothCropTitle">Căn ảnh cho tấm 1</h2><button id="boothCropClose" class="booth-close" type="button" aria-label="Hủy căn ảnh">×</button></div>
+    <p id="boothCropHelp">Kéo ảnh để căn vị trí. Dùng hai ngón tay hoặc thanh bên dưới để phóng to.</p>
+    <canvas id="boothCropCanvas" width="600" height="440" tabindex="0" role="img" aria-label="Ảnh đang căn chỉnh. Có thể dùng các phím mũi tên để dịch chuyển ảnh." aria-describedby="boothCropHelp"></canvas>
+    <div class="booth-crop-zoom"><label for="boothCropZoom">Phóng to</label><input id="boothCropZoom" type="range" min="1" max="3" step="0.01" value="1"><output id="boothCropZoomValue" for="boothCropZoom">1×</output></div>
+    <p id="boothCropStatus" class="booth-crop-status" role="status" aria-live="polite"></p>
+    <div class="booth-crop-tools"><button id="boothCropReset" class="booth-secondary" type="button">Căn giữa</button><button id="boothCropChange" class="booth-secondary" type="button">Chọn ảnh khác</button></div>
+    <div class="booth-crop-actions"><button id="boothCropCancel" class="booth-secondary" type="button">Hủy</button><button id="boothCropConfirm" class="booth-primary" type="button">Dùng ảnh này</button></div>
   </dialog>
   <noscript><div class="noscript">Chúc cậu một ngày 20/10 ngập tràn yêu thương, luôn tự tin và rạng rỡ theo cách của riêng mình. Bật JavaScript để khám phá từng bông hoa và mở những tấm thiệp.</div></noscript>
 </body>

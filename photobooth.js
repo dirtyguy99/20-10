@@ -10,12 +10,21 @@
   const countdown = $('#boothCountdown'), shotLabel = $('#boothShotLabel');
   const strip = $('#boothStrip'), ctx = strip.getContext('2d');
   const save = $('#boothSave'), original = $('#boothOriginal');
+  const upload = $('#boothUpload'), fileInput = $('#boothFileInput'), slots = $('#boothSlots');
+  const cropDialog = $('#boothCrop'), cropCanvas = $('#boothCropCanvas');
+  const cropContext = cropCanvas.getContext('2d'), cropZoom = $('#boothCropZoom');
+  const cropConfirm = $('#boothCropConfirm'), cropReset = $('#boothCropReset'), cropChange = $('#boothCropChange');
+  const cropStatus = $('#boothCropStatus');
   const photoWidth = 600, photoHeight = 440, photoX = 60, firstY = 236, pitch = 476;
   const paperColor = '#faf9f5';
   let stream = null, generation = 0, photos = [], imageUrl = null;
   let facing = 'user', shooting = false, requesting = false;
+  let importing = false, exporting = false, crop = null, editEpoch = 0, loadingCrop = false;
+  let importErrorMessage = '';
+  let importQueue = [], importErrors = 0, extraFiles = 0, uploadTarget = 0, queueTarget = 0, pickerMode = 'queue';
+  const photoSources = [], cropPointers = new Map();
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-  const readyText = () => `Đã chụp ${photos.length} / 4 tấm. Cậu sẵn sàng thì bấm chụp tấm ${photos.length + 1} nhé.`;
+  const readyText = () => `Đã có ${photos.length} / 4 tấm. Cậu sẵn sàng thì bấm chụp tấm ${photos.length + 1} nhé.`;
   const sparkleSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   sparkleSvg.id = 'boothSparkles'; sparkleSvg.setAttribute('viewBox', `0 0 ${photoWidth} ${photoHeight}`);
   sparkleSvg.setAttribute('aria-hidden', 'true'); video.after(sparkleSvg);
@@ -160,6 +169,7 @@
       }
     }
     // The paper pattern continues to the bottom; there is no separate footer caption or signature.
+    updateSlots();
   }
   function resetDownload() {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
@@ -172,14 +182,18 @@
     video.pause(); video.srcObject = null; view.classList.remove('is-live');
   }
   function controls(ready = false) {
+    const busy = shooting || requesting || importing || exporting;
     camera.hidden = ready || photos.length === 4;
-    camera.disabled = requesting;
+    camera.disabled = busy;
     camera.textContent = requesting ? 'Đang mở camera…' : 'Bật camera';
-    capture.hidden = !ready || photos.length === 4; capture.disabled = shooting;
+    capture.hidden = !ready || photos.length === 4; capture.disabled = busy;
     capture.textContent = shooting ? 'Đang chụp…' : `Chụp tấm ${Math.min(photos.length + 1, 4)} / 4`;
-    flip.hidden = !ready || photos.length === 4; flip.disabled = shooting;
-    undo.hidden = photos.length === 0; undo.disabled = shooting || requesting;
+    flip.hidden = !ready || photos.length === 4; flip.disabled = busy;
+    undo.hidden = photos.length === 0; undo.disabled = busy;
     retake.hidden = photos.length !== 4;
+    retake.disabled = busy; upload.disabled = busy;
+    upload.textContent = photos.length === 4 ? 'Thay bằng ảnh có sẵn' : 'Tải ảnh lên';
+    updateSlots();
   }
   function cameraError(error) {
     const messages = {
@@ -191,7 +205,7 @@
     status.textContent = messages[error?.name] || 'Chưa mở được camera. Cậu thử bật lại camera nhé.';
   }
   async function startCamera() {
-    if (requesting || shooting || !modal.open) return;
+    if (requesting || shooting || importing || exporting || !modal.open) return;
     const token = ++generation;
     requesting = true; stopCamera(); controls();
     message.hidden = false;
@@ -244,7 +258,7 @@
     return photo;
   }
   async function shoot() {
-    if (shooting || requesting || !stream || photos.length >= 4) return;
+    if (shooting || requesting || importing || exporting || !stream || photos.length >= 4) return;
     const token = ++generation;
     shooting = true; controls(true);
     shotLabel.hidden = false;
@@ -259,7 +273,9 @@
       }
       if (token !== generation || !modal.open) return;
       countdown.hidden = true;
-      photos.push(takeFrame()); drawStrip();
+      const frame = takeFrame();
+      photoSources[photos.length] = {source: frame, zoom: 1, panX: 0, panY: 0};
+      photos.push(frame); drawStrip();
       view.classList.remove('is-flashing'); void view.offsetWidth; view.classList.add('is-flashing');
       await wait(350);
       if (token !== generation || !modal.open) return;
@@ -278,18 +294,23 @@
     }
   }
   async function finishStrip(token) {
-    stopCamera(); status.textContent = 'Đang gói bốn khoảnh khắc của cậu…';
-    await Promise.race([Promise.all([scriptFont, document.fonts.ready]), wait(3000)]);
-    if (token !== generation || !modal.open) return;
-    drawStrip();
-    const blob = await new Promise(resolve => strip.toBlob(resolve, 'image/png'));
-    if (token !== generation || !modal.open) return;
-    if (!blob) throw new Error('Could not export image');
-    resetDownload(); imageUrl = URL.createObjectURL(blob); save.href = original.href = imageUrl;
-    save.hidden = original.hidden = $('#boothSaveHint').hidden = false;
-    modal.classList.add('is-complete'); message.hidden = false;
-    status.textContent = 'Bốn khoảnh khắc thật xinh! Cậu lưu dải ảnh về máy nhé.';
-    save.focus();
+    exporting = true; controls();
+    try {
+      stopCamera(); status.textContent = 'Đang gói bốn khoảnh khắc của cậu…';
+      await Promise.race([Promise.all([scriptFont, document.fonts.ready]), wait(3000)]);
+      if (token !== generation || !modal.open) return;
+      drawStrip();
+      const blob = await new Promise(resolve => strip.toBlob(resolve, 'image/png'));
+      if (token !== generation || !modal.open) return;
+      if (!blob) throw new Error('Could not export image');
+      resetDownload(); imageUrl = URL.createObjectURL(blob); save.href = original.href = imageUrl;
+      save.hidden = original.hidden = $('#boothSaveHint').hidden = false;
+      modal.classList.add('is-complete'); message.hidden = false;
+      status.textContent = 'Bốn khoảnh khắc thật xinh! Cậu lưu dải ảnh về máy nhé.';
+      save.focus();
+    } finally {
+      if (token === generation) { exporting = false; controls(!!stream); }
+    }
   }
   function closeBooth() { modal.close(); }
   open.addEventListener('click', async () => {
@@ -298,7 +319,7 @@
     if (photos.length !== 4) {
       if (!photos.length) randomizeDecoration();
       drawStrip(); showLiveStars();
-      status.textContent = photos.length ? `Đã giữ ${photos.length} tấm. Cậu bật camera để chụp tiếp nhé.` : 'Cậu tự bấm chụp từng tấm nhé. Mỗi lần bấm đếm ngược 3 giây.';
+      status.textContent = photos.length ? `Đã giữ ${photos.length} tấm. Cậu bật camera hoặc tải ảnh để thêm nhé.` : 'Cậu có thể bật camera hoặc tải ảnh có sẵn lên nhé.';
       camera.focus();
     } else if (imageUrl) save.focus();
     else {
@@ -309,7 +330,8 @@
   $('#closePhotobooth').addEventListener('click', closeBooth);
   modal.addEventListener('cancel', event => { event.preventDefault(); closeBooth(); });
   modal.addEventListener('close', () => {
-    generation++; shooting = requesting = false; stopCamera();
+    abandonEditor();
+    generation++; shooting = requesting = exporting = false; stopCamera();
     countdown.hidden = shotLabel.hidden = true;
     message.hidden = false; view.classList.remove('is-flashing');
     if (photos.length !== 4 || !imageUrl) modal.classList.remove('is-complete');
@@ -319,14 +341,15 @@
   flip.addEventListener('click', () => { facing = facing === 'user' ? 'environment' : 'user'; startCamera(); });
   capture.addEventListener('click', shoot);
   undo.addEventListener('click', () => {
-    if (shooting || requesting || !photos.length) return;
-    generation++; photos.pop(); resetDownload(); modal.classList.remove('is-complete');
+    if (shooting || requesting || importing || exporting || !photos.length) return;
+    generation++; photos.pop(); photoSources.pop(); resetDownload(); modal.classList.remove('is-complete');
     drawStrip(); showLiveStars();
     if (stream) { controls(true); status.textContent = readyText(); capture.focus(); }
     else startCamera();
   });
   retake.addEventListener('click', () => {
-    photos = []; resetDownload(); modal.classList.remove('is-complete');
+    if (shooting || requesting || importing || exporting) return;
+    photos = []; photoSources.length = 0; resetDownload(); modal.classList.remove('is-complete');
     randomizeDecoration(); drawStrip(); startCamera();
   });
   // Backgrounding a phone interrupts a session instead of saving black frames.
@@ -336,6 +359,230 @@
     countdown.hidden = shotLabel.hidden = true; message.hidden = false;
     controls();
     status.textContent = `Camera đã tạm dừng, đã giữ ${photos.length} tấm. Cậu bật lại để chụp tiếp nhé.`;
+  });
+  function updateSlots() {
+    const busy = shooting || requesting || importing || exporting;
+    slots.replaceChildren();
+    for (let i = 0; i < 4; i++) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.dataset.slot = i;
+      const filled = !!photos[i];
+      button.textContent = `${filled ? '' : '+ '}Tấm ${i + 1}`;
+      button.classList.toggle('is-filled', filled);
+      button.disabled = busy || (!filled && i !== photos.length);
+      button.setAttribute('aria-label', filled ? `Căn chỉnh hoặc thay ảnh tấm ${i + 1}` : `Tải ảnh cho tấm ${i + 1}`);
+      button.addEventListener('click', () => filled ? editPhoto(i) : choosePhotos(i));
+      slots.append(button);
+    }
+  }
+  function choosePhotos(target = photos.length < 4 ? photos.length : 0) {
+    if (shooting || requesting || importing || exporting || !modal.open) return;
+    uploadTarget = target; pickerMode = 'queue'; fileInput.multiple = true;
+    fileInput.value = ''; fileInput.click();
+  }
+  async function readPhoto(file) {
+    if (!(file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|avif|bmp|heic|heif)$/i.test(file.name))) throw new Error('Ảnh chưa đúng định dạng. Cậu chọn JPG, PNG hoặc WebP nhé.');
+    if (file.size > 25 * 1024 * 1024) throw new Error('Ảnh hơi lớn. Cậu chọn ảnh dưới 25 MB nhé.');
+    const url = URL.createObjectURL(file), image = new Image();
+    try {
+      image.src = url; await image.decode();
+      if (!image.naturalWidth || !image.naturalHeight) throw new Error('Ảnh không có kích thước hợp lệ.');
+      const scale = Math.min(1, 2048 / Math.max(image.naturalWidth, image.naturalHeight));
+      const source = document.createElement('canvas');
+      source.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      source.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      source.getContext('2d').drawImage(image, 0, 0, source.width, source.height);
+      return source;
+    } catch (error) {
+      if (error.name === 'EncodingError') throw new Error('Chưa đọc được ảnh này. Cậu thử ảnh JPG, PNG hoặc WebP nhé.');
+      throw error;
+    } finally { URL.revokeObjectURL(url); image.src = ''; }
+  }
+  function setCropControls() {
+    const disabled = loadingCrop || !crop;
+    cropConfirm.disabled = cropReset.disabled = cropChange.disabled = cropZoom.disabled = disabled;
+    $('#boothCropCancel').textContent = importQueue.length > 1 ? 'Hủy ảnh còn lại' : 'Hủy';
+  }
+  function cropDimensions() {
+    const scale = Math.max(photoWidth / crop.source.width, photoHeight / crop.source.height) * crop.zoom;
+    return {width: crop.source.width * scale, height: crop.source.height * scale};
+  }
+  function clampCrop() {
+    const d = cropDimensions();
+    const maxX = Math.max(0, (d.width - photoWidth) / 2), maxY = Math.max(0, (d.height - photoHeight) / 2);
+    crop.panX = Math.max(-maxX, Math.min(maxX, crop.panX));
+    crop.panY = Math.max(-maxY, Math.min(maxY, crop.panY));
+  }
+  function paintCrop(context) {
+    clampCrop(); const d = cropDimensions();
+    context.fillStyle = paperColor; context.fillRect(0, 0, photoWidth, photoHeight);
+    context.drawImage(crop.source, (photoWidth - d.width) / 2 + crop.panX, (photoHeight - d.height) / 2 + crop.panY, d.width, d.height);
+  }
+  function renderCrop() {
+    if (!crop || loadingCrop) return;
+    paintCrop(cropContext);
+    cropZoom.value = crop.zoom;
+    $('#boothCropZoomValue').textContent = `${crop.zoom.toFixed(2)}×`;
+    cropZoom.setAttribute('aria-valuetext', `Phóng to ${Math.round(crop.zoom * 100)} phần trăm`);
+  }
+  function showCrop(source, target, name, previous = {}) {
+    crop = {source, target, name, zoom: previous.zoom || 1, panX: previous.panX || 0, panY: previous.panY || 0};
+    loadingCrop = false; cropPointers.clear(); cropCanvas.classList.remove('is-dragging');
+    $('#boothCropTitle').textContent = `Căn ảnh cho tấm ${target + 1}`;
+    cropStatus.textContent = `${name}${importQueue.length > 1 ? ` · Còn ${importQueue.length - 1} ảnh tiếp theo` : ''}`;
+    if (!cropDialog.open) cropDialog.showModal();
+    setCropControls(); renderCrop(); cropCanvas.focus();
+  }
+  function prepareEditor() {
+    generation++; stopCamera(); message.hidden = false; importing = true; controls();
+    cropContext.fillStyle = paperColor; cropContext.fillRect(0, 0, photoWidth, photoHeight);
+    if (!cropDialog.open) cropDialog.showModal();
+  }
+  async function nextImport() {
+    if (!importQueue.length || queueTarget >= 4) { await endEditing(); return; }
+    const epoch = editEpoch, file = importQueue[0];
+    crop = null; loadingCrop = true; setCropControls();
+    $('#boothCropTitle').textContent = `Căn ảnh cho tấm ${queueTarget + 1}`;
+    cropStatus.textContent = 'Đang mở ảnh…';
+    cropContext.fillStyle = paperColor; cropContext.fillRect(0, 0, photoWidth, photoHeight);
+    try {
+      const source = await readPhoto(file);
+      if (epoch !== editEpoch || !modal.open) return;
+      showCrop(source, queueTarget, file.name);
+    } catch (error) {
+      if (epoch !== editEpoch || !modal.open) return;
+      importErrorMessage = error.message; importErrors++; importQueue.shift(); await nextImport();
+    }
+  }
+  function editPhoto(target) {
+    if (shooting || requesting || importing || exporting || !photos[target]) return;
+    editEpoch++; importQueue = []; importErrors = extraFiles = 0;
+    const saved = photoSources[target] || {source: photos[target]};
+    prepareEditor(); showCrop(saved.source, target, saved.name || `Ảnh tấm ${target + 1}`, saved);
+  }
+  function abandonEditor() {
+    editEpoch++; importing = loadingCrop = false; importQueue = []; crop = null;
+    for (const id of cropPointers.keys()) { try { cropCanvas.releasePointerCapture(id); } catch {} }
+    cropPointers.clear(); cropCanvas.classList.remove('is-dragging');
+    if (cropDialog.open) cropDialog.close();
+    cropContext.clearRect(0, 0, photoWidth, photoHeight);
+  }
+  async function endEditing(cancelled = false) {
+    const errors = importErrors, extra = extraFiles;
+    abandonEditor();
+    if (!modal.open) return;
+    const token = ++generation;
+    if (photos.length === 4 && !imageUrl) {
+      try { await finishStrip(token); }
+      catch { status.textContent = 'Chưa tạo được file ảnh. Cậu mở lại photobooth để thử lưu nhé.'; }
+    } else if (photos.length < 4) {
+      status.textContent = `Đã có ${photos.length} / 4 tấm. Cậu tải thêm ảnh hoặc bật camera để chụp tiếp nhé.`;
+    } else if (cancelled) status.textContent = 'Đã giữ nguyên ảnh. Cậu vẫn có thể lưu dải ảnh về máy nhé.';
+    if (token !== generation || !modal.open) return;
+    if (errors) status.textContent += ` Đã bỏ qua ${errors} ảnh. ${importErrorMessage}`;
+    if (extra) status.textContent += ` Đã bỏ qua ${extra} ảnh vì chỉ còn ${4 - uploadTarget} ô để thêm.`;
+    controls(!!stream);
+    if (photos.length === 4 && imageUrl) save.focus(); else upload.focus();
+  }
+  upload.addEventListener('click', () => choosePhotos());
+  fileInput.addEventListener('change', async () => {
+    const files = Array.from(fileInput.files || []); fileInput.value = '';
+    if (!files.length || !modal.open) return;
+    if (pickerMode === 'replace' && crop && importing) {
+      const epoch = ++editEpoch;
+      loadingCrop = true; setCropControls(); cropStatus.textContent = 'Đang mở ảnh thay thế…';
+      try {
+        const source = await readPhoto(files[0]);
+        if (epoch !== editEpoch || !modal.open || !crop) return;
+        showCrop(source, crop.target, files[0].name);
+      } catch (error) {
+        if (epoch === editEpoch && crop) cropStatus.textContent = error.message;
+      } finally {
+        if (epoch === editEpoch && crop) { loadingCrop = false; setCropControls(); }
+      }
+      return;
+    }
+    if (shooting || requesting || importing || exporting) return;
+    editEpoch++; queueTarget = uploadTarget;
+    const capacity = 4 - queueTarget;
+    importQueue = files.slice(0, capacity); importErrors = 0; extraFiles = Math.max(0, files.length - capacity);
+    prepareEditor(); await nextImport();
+  });
+  cropChange.addEventListener('click', () => {
+    if (!crop || loadingCrop) return;
+    pickerMode = 'replace'; fileInput.multiple = false; fileInput.value = ''; fileInput.click();
+  });
+  cropConfirm.addEventListener('click', async () => {
+    if (!crop || loadingCrop) return;
+    const photo = document.createElement('canvas'); photo.width = photoWidth; photo.height = photoHeight;
+    paintCrop(photo.getContext('2d'));
+    photos[crop.target] = photo;
+    photoSources[crop.target] = {source: crop.source, name: crop.name, zoom: crop.zoom, panX: crop.panX, panY: crop.panY};
+    resetDownload(); modal.classList.remove('is-complete'); drawStrip(); showLiveStars();
+    if (importQueue.length) { importQueue.shift(); queueTarget++; await nextImport(); }
+    else await endEditing();
+  });
+  for (const id of ['boothCropClose', 'boothCropCancel']) $(`#${id}`).addEventListener('click', () => endEditing(true));
+  cropDialog.addEventListener('cancel', event => { event.preventDefault(); endEditing(true); });
+  cropReset.addEventListener('click', () => {
+    if (!crop || loadingCrop) return;
+    crop.zoom = 1; crop.panX = crop.panY = 0; renderCrop();
+  });
+  function changeZoom(value, anchorX = photoWidth / 2, anchorY = photoHeight / 2) {
+    if (!crop || loadingCrop) return;
+    const before = cropDimensions();
+    const sourceX = (anchorX - (photoWidth - before.width) / 2 - crop.panX) / before.width;
+    const sourceY = (anchorY - (photoHeight - before.height) / 2 - crop.panY) / before.height;
+    crop.zoom = Math.max(1, Math.min(3, value));
+    const after = cropDimensions();
+    crop.panX = anchorX - sourceX * after.width - (photoWidth - after.width) / 2;
+    crop.panY = anchorY - sourceY * after.height - (photoHeight - after.height) / 2;
+    renderCrop();
+  }
+  cropZoom.addEventListener('input', () => changeZoom(Number(cropZoom.value)));
+  function pointerPosition(event) {
+    const rect = cropCanvas.getBoundingClientRect();
+    return {x: (event.clientX - rect.left) * photoWidth / rect.width, y: (event.clientY - rect.top) * photoHeight / rect.height};
+  }
+  cropCanvas.addEventListener('pointerdown', event => {
+    if (!crop || loadingCrop || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    event.preventDefault(); cropCanvas.focus(); cropPointers.set(event.pointerId, pointerPosition(event));
+    cropCanvas.setPointerCapture(event.pointerId); cropCanvas.classList.add('is-dragging');
+  });
+  cropCanvas.addEventListener('pointermove', event => {
+    if (!crop || loadingCrop || !cropPointers.has(event.pointerId)) return;
+    event.preventDefault();
+    const previous = cropPointers.get(event.pointerId), next = pointerPosition(event);
+    if (cropPointers.size === 1) {
+      crop.panX += next.x - previous.x; crop.panY += next.y - previous.y;
+      cropPointers.set(event.pointerId, next); renderCrop();
+    } else {
+      const before = [...cropPointers.values()].slice(0, 2);
+      cropPointers.set(event.pointerId, next);
+      const after = [...cropPointers.values()].slice(0, 2);
+      const distance = points => Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      const middle = points => ({x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2});
+      const oldMiddle = middle(before), newMiddle = middle(after);
+      if (distance(before) > 0) changeZoom(crop.zoom * distance(after) / distance(before), oldMiddle.x, oldMiddle.y);
+      crop.panX += newMiddle.x - oldMiddle.x; crop.panY += newMiddle.y - oldMiddle.y; renderCrop();
+    }
+  });
+  for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) cropCanvas.addEventListener(name, event => {
+    cropPointers.delete(event.pointerId); if (!cropPointers.size) cropCanvas.classList.remove('is-dragging');
+  });
+  cropCanvas.addEventListener('wheel', event => {
+    if (!crop || loadingCrop) return;
+    event.preventDefault(); const point = pointerPosition(event);
+    changeZoom(crop.zoom * Math.exp(-event.deltaY * .0015), point.x, point.y);
+  }, {passive: false});
+  cropCanvas.addEventListener('keydown', event => {
+    if (!crop || loadingCrop || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault(); const step = event.shiftKey ? 40 : 10;
+    if (event.key === 'ArrowLeft') crop.panX -= step;
+    if (event.key === 'ArrowRight') crop.panX += step;
+    if (event.key === 'ArrowUp') crop.panY -= step;
+    if (event.key === 'ArrowDown') crop.panY += step;
+    renderCrop();
   });
   window.addEventListener('pagehide', stopCamera);
   randomizeDecoration(); drawStrip();
