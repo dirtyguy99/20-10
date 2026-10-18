@@ -12,7 +12,7 @@ Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồn
 - Ghi nhớ tiến trình trong trình duyệt; hỗ trợ điện thoại, bàn phím và chế độ giảm chuyển động.
 
 - Photobooth ở góc phải: bật camera và tự bấm chụp từng tấm, mỗi lần đếm ngược 3 giây. Đủ 4 tấm mới ghép dải ảnh dọc. Có đổi camera, chụp lại tấm vừa rồi hoặc cả bộ và tải PNG 720 × 2200 px, gồm 4 ảnh chữ nhật ngang 600 × 440 px.
-- Khung giấy trắng viền thẳng bên ngoài, mép ảnh lượn sóng, chữ Womens Day bằng font viết tay Great Vibes; tông giấy trắng ngà và chữ đỏ theo ảnh tham khảo, 4 sticker hoa nhỏ (2 hoa hồng, 2 tulip), 1 nơ hồng và nét tim mảnh phân bố ở viền; nền giấy lặp chữ nghiêng “it's always you” tràn ra hai cạnh và mép dưới, phần tiêu đề giữ sạch; tấm 2 và 4 có khung nét đỏ uốn lượn và ô ảnh chữ nhật viền thẳng, cùng sao vàng nhạt trong ảnh. Font Great Vibes được lưu kèm theo giấy phép OFL trong assets/.
+- Khung giấy trắng ngà phủ toàn bộ dải ảnh, 4 ô chữ nhật viền thẳng có cùng kích thước và lề, chữ Womens Day bằng font viết tay Great Vibes; tông giấy trắng ngà và chữ đỏ theo ảnh tham khảo, 4 sticker hoa nhỏ (2 hoa hồng, 2 tulip), 1 nơ hồng và nét tim mảnh phân bố ở viền; nền giấy lặp chữ nghiêng “it's always you” tràn ra hai cạnh và mép dưới, phần tiêu đề giữ sạch, cùng sao vàng nhạt trong ảnh. Font Great Vibes được lưu kèm theo giấy phép OFL trong assets/.
 - Khi đóng photobooth hoặc chuyển ứng dụng, những tấm đã chụp vẫn được giữ để chụp tiếp.
 - Camera chỉ bật sau khi nhấn nút, tự tắt khi chụp xong, đóng photobooth hoặc chuyển ứng dụng. Ảnh được xử lý trên thiết bị, không gửi lên máy chủ.
 

@@ -11,6 +11,7 @@
   const strip = $('#boothStrip'), ctx = strip.getContext('2d');
   const save = $('#boothSave'), original = $('#boothOriginal');
   const photoWidth = 600, photoHeight = 440, photoX = 60, firstY = 236, pitch = 476;
+  const paperColor = '#faf9f5';
   let stream = null, generation = 0, photos = [], imageUrl = null;
   let facing = 'user', shooting = false, requesting = false;
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -70,7 +71,7 @@
   }
   function sticker(type, x, y, angle) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(.7, .7); ctx.lineJoin = ctx.lineCap = 'round';
-    const shape = (d, fill) => { const p = new Path2D(d); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.stroke(p); ctx.fillStyle = fill; ctx.fill(p); };
+    const shape = (d, fill) => { const p = new Path2D(d); ctx.strokeStyle = paperColor; ctx.lineWidth = 7; ctx.stroke(p); ctx.fillStyle = fill; ctx.fill(p); };
     if (type === 'bow') {
       shape('M-5 2Q-5 31-21 53L-28 37-45 39Q-24 24-16-3Z', '#e899b9');
       shape('M9 0Q26 18 43 42L24 40 17 53Q8 32 0 9Z', '#d977a3');
@@ -94,33 +95,10 @@
     }
     ctx.restore();
   }
-  function scallopedPath(x, y, w, h) {
-    const path = new Path2D(); path.moveTo(x, y);
-    const edge = (sx, sy, dx, dy, length, nx, ny) => {
-      const count = Math.round(length / 31), step = length / count;
-      for (let i = 0; i < count; i++) {
-        const px = sx + dx * i * step, py = sy + dy * i * step;
-        path.bezierCurveTo(px + dx * step / 3 + nx * 8, py + dy * step / 3 + ny * 8,
-          px + dx * step * 2 / 3 + nx * 8, py + dy * step * 2 / 3 + ny * 8,
-          px + dx * step, py + dy * step);
-      }
-    };
-    edge(x, y, 1, 0, w, 0, 1); edge(x + w, y, 0, 1, h, -1, 0);
-    edge(x + w, y + h, -1, 0, w, 0, -1); edge(x, y + h, 0, -1, h, 1, 0);
-    path.closePath(); return path;
-  }
   function inkHeart(x, y) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(-.12);
     ctx.strokeStyle = '#ad3d43'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
     ctx.stroke(new Path2D('M0 13C-49-12-27-49 0-20C27-48 48-11 0 13M2 16C-43-7-29-43-2-18C25-46 48-10 2 16'));
-    ctx.restore();
-  }
-  function ribbonFrame(y) {
-    ctx.save(); ctx.translate(photoX, y); ctx.scale(photoWidth / 600, photoHeight / 600);
-    ctx.strokeStyle = '#b04d53'; ctx.lineWidth = 2; ctx.lineCap = ctx.lineJoin = 'round';
-    // Two loose red pen strokes with loops at opposite corners, like the reference.
-    ctx.stroke(new Path2D('M-13-10C-43-52-19-43 3 5C86 28 250-9 430 16M3 5C25 120-18 267-37 374'));
-    ctx.stroke(new Path2D('M622 215C584 292 608 442 597 594C643 635 660 628 626 600C608 575 523 619 433 603C328 584 245 617 169 597'));
     ctx.restore();
   }
   function drawPaperWords() {
@@ -138,7 +116,7 @@
     // Keep a complete, readable phrase in the three paper gaps between photos.
     for (let i = 0; i < 3; i++) {
       const y = firstY + photoHeight + i * pitch;
-      ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = '#faf9f5';
+      ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = paperColor;
       ctx.fillRect(photoX, y, photoWidth, pitch - photoHeight);
       ctx.globalAlpha = .55; ctx.fillStyle = '#ac3e48';
       ctx.font = '32px "Great Vibes", cursive'; ctx.textAlign = 'center';
@@ -148,9 +126,8 @@
     ctx.restore();
   }
   function drawStrip() {
-    // A straight white outer border surrounds the warm paper and scalloped photo windows.
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, strip.width, strip.height);
-    ctx.fillStyle = '#faf9f5'; ctx.fillRect(22, 22, strip.width - 44, strip.height - 44);
+    // One continuous ivory paper fills the entire strip, with equal photo margins.
+    ctx.fillStyle = paperColor; ctx.fillRect(0, 0, strip.width, strip.height);
     drawPaperWords();
     ctx.fillStyle = '#ab3039'; ctx.textAlign = 'center';
     ctx.font = '500 56px "Playfair Display", Georgia, serif'; ctx.fillText('20/10', 360, 94);
@@ -161,8 +138,7 @@
     for (let i = 0; i < 4; i++) {
       const y = firstY + i * pitch, design = decoration[i];
       const photoWindow = new Path2D();
-      if (i === 1 || i === 3) photoWindow.rect(photoX, y, photoWidth, photoHeight);
-      else photoWindow.addPath(scallopedPath(photoX, y, photoWidth, photoHeight));
+      photoWindow.rect(photoX, y, photoWidth, photoHeight);
       ctx.save(); ctx.clip(photoWindow);
       if (photos[i]) ctx.drawImage(photos[i], photoX, y, photoWidth, photoHeight);
       else {
@@ -176,7 +152,6 @@
         design.stars.forEach(s => ctx.fill(starPath(photoX + s.x, y + s.y, s.size, s.angle)));
       }
       ctx.restore();
-      if (i === 1 || i === 3) ribbonFrame(y);
       if (design?.stickers.length) {
         const x = (i === 1 || i === 3) ? 650 : ((i % 2 === 0) !== design.reverse ? 62 : 650);
         sticker(design.stickers[0].type, x, y + 10, design.stickers[0].angle);
