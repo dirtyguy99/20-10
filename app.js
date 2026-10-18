@@ -15,19 +15,18 @@ const ns='http://www.w3.org/2000/svg';
 function el(tag,attrs={},parent=svg){const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(parent)parent.append(e);return e;}
 // Shared satin shading keeps the layered roses light enough for mobile.
 const defs=el('defs');
-[['velvet','#500a1b','#a40d2d','#d62e49'],['scarlet','#730b24','#c51e3e','#f45a68'],['crimson','#590a20','#b51537','#e8455e'],['fold','#450b1b','#8a0d29','#d33550'],['pink-velvet','#a43d68','#df729d','#ffc2d5'],['pink-scarlet','#b84e7b','#ee91b3','#ffdae5'],['pink-crimson','#a53964','#e17da6','#ffc7db'],['pink-fold','#96365f','#cf6993','#f6afc9']].forEach(([name,dark,mid,light])=>{
+[['velvet','#500a1b','#a40d2d','#d62e49'],['scarlet','#730b24','#c51e3e','#f45a68'],['crimson','#590a20','#b51537','#e8455e'],['fold','#450b1b','#8a0d29','#d33550']].forEach(([name,dark,mid,light])=>{
  const grad=el('radialGradient',{id:`rose-${name}`,cx:'44%',cy:'15%',r:'88%'},defs);
  el('stop',{offset:'0%','stop-color':light},grad);el('stop',{offset:'48%','stop-color':mid},grad);el('stop',{offset:'100%','stop-color':dark},grad);
 });
 // Uneven petals use soft shading and pink highlights, without dark contour lines.
 function drawRose(parent,x,y,size,angle=0,index=null){
- const pink=[1,3,10,12,18].includes(index),palette=pink?'pink-':'';
  const g=el('g',{transform:`translate(${x} ${y}) rotate(${angle}) scale(${size})`},parent);
- if(index!==null)g.dataset.color=pink?'pink':'red';
- if(index!==null){g.classList.add('rose');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.dataset.index=index;g.dataset.wish=index%wishes.length;g.setAttribute('aria-label',`Bông hồng ${index+1}, màu ${pink?'hồng':'đỏ'}: ${wishes[index%wishes.length][0]}`);el('circle',{r:43,fill:'transparent',class:'focus-ring'},g);}
+ if(index!==null)g.dataset.color='red';
+ if(index!==null){g.classList.add('rose');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.dataset.index=index;g.dataset.wish=index%wishes.length;g.setAttribute('aria-label',`Bông hồng ${index+1}: ${wishes[index%wishes.length][0]}`);el('circle',{r:43,fill:'transparent',class:'focus-ring'},g);}
  const p=el('g',{class:'petals'},g);
  const shape=el('g',{transform:`rotate(${Math.sin((index??3)*7)*8}) scale(1 ${.96+Math.sin(index??2)*.04})`},p);
- el('path',{d:'M-35-14L-38-28Q-26-32-22-40L-6-35Q7-43 19-34L32-31Q36-18 43-12L36 3Q43 17 28 24L19 36Q4 33-4 40L-18 31Q-34 30-33 15L-42 4Z',fill:pink?'#b7507b':'#640b23'},shape);
+ el('path',{d:'M-35-14L-38-28Q-26-32-22-40L-6-35Q7-43 19-34L32-31Q36-18 43-12L36 3Q43 17 28 24L19 36Q4 33-4 40L-18 31Q-34 30-33 15L-42 4Z',fill:'#640b23'},shape);
  const petals=[
  ['M-38-13Q-45-31-26-36Q-18-41-8-34L4-16Q-8-18-16-8Q-26-5-38-13Z','crimson','M-38-24Q-32-35-23-35L-13-32'],
  ['M-8-34Q4-43 22-35Q38-37 39-19L21-7Q11-15-1-12Z','scarlet','M-5-34Q7-39 21-33Q32-34 36-25'],
@@ -43,11 +42,11 @@ function drawRose(parent,x,y,size,angle=0,index=null){
  ['M7 14Q-6 25-16 12Q-22 3-13-5L-2 2Q-8 6-1 11Z','fold','M2 16Q-9 19-13 10Q-18 4-12-1']
  ];
  petals.forEach(([d,tone,rim],i)=>{
-  el('path',{d,fill:`url(#rose-${palette}${tone})`},shape);
-  el('path',{d:rim,fill:'none',stroke:pink?(i<5?'#ffcfdf':'#f6b6d0'):(i<5?'#f3838d':'#ed6479'),'stroke-width':1.15,'stroke-linecap':'round',opacity:.8},shape);
+  el('path',{d,fill:`url(#rose-${tone})`},shape);
+  el('path',{d:rim,fill:'none',stroke:i<5?'#f3838d':'#ed6479','stroke-width':1.15,'stroke-linecap':'round',opacity:.8},shape);
  });
- el('path',{d:'M-6-6Q4-13 9-3L3 6-6 4Q-11 1-6-6Z',fill:`url(#rose-${palette}fold)`},shape);
- el('path',{d:'M-5-5 3-7 6-2 0 2-5-1Z',fill:pink?'#d97ca4':'#bb2947',stroke:pink?'#ffccdf':'#ef7283','stroke-width':.8},shape);
+ el('path',{d:'M-6-6Q4-13 9-3L3 6-6 4Q-11 1-6-6Z',fill:'url(#rose-fold)'},shape);
+ el('path',{d:'M-5-5 3-7 6-2 0 2-5-1Z',fill:'#bb2947',stroke:'#ef7283','stroke-width':.8},shape);
  if(index!==null)el('path',{d:'m27-25 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z',fill:'#ffe3ba',class:'viewed-mark'},g);
  return g;
 }

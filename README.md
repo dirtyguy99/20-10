@@ -1,10 +1,10 @@
 # Một món quà nho nhỏ dành cho cậu
 
-Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồng đỏ xen hồng trên nền đen và các hiệu ứng trái tim.
+Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồng đỏ trên nền đen và các hiệu ứng trái tim.
 
 ## Tính năng
 
-- 20 bông hồng (5 bông hồng nhạt xen 15 bông đỏ), dùng chung 10 lời chúc. Mỗi lời chúc gắn với hai bông hoa.
+- 20 bông hồng đỏ, dùng chung 10 lời chúc. Mỗi lời chúc gắn với hai bông hoa.
 - Chạm vào hoa để mở thiệp; chỉ những lời chúc khác nhau mới được tính vào tiến trình.
 - Xem đủ 10 lời chúc sẽ tự mở màn bất ngờ: chữ vàng bay xoay rồi ghép thành câu “Chúc mừng cậu đã nhận gói đáng iu trọn đờiii <3”.
 - Hai sticker nền trong suốt lắc nhẹ ở trên và dưới dòng chữ.
@@ -12,7 +12,7 @@ Trang web 2D chúc mừng Ngày Phụ nữ Việt Nam 20/10, với bó hoa hồn
 - Ghi nhớ tiến trình trong trình duyệt; hỗ trợ điện thoại, bàn phím và chế độ giảm chuyển động.
 
 - Photobooth ở góc phải: bật camera và tự bấm chụp từng tấm, mỗi lần đếm ngược 3 giây. Đủ 4 tấm mới ghép dải ảnh dọc. Có đổi camera, chụp lại tấm vừa rồi hoặc cả bộ và tải PNG 720 × 2200 px.
-- Khung giấy trắng viền thẳng bên ngoài, mép ảnh lượn sóng, chữ Womens Day bằng font viết tay Great Vibes; sticker hoa hồng, tulip, nơ hồng sắp ngẫu nhiên ở viền và sao vàng nhạt trong ảnh. Font Great Vibes được lưu kèm theo giấy phép OFL trong assets/.
+- Khung giấy trắng viền thẳng bên ngoài, mép ảnh lượn sóng, chữ Womens Day bằng font viết tay Great Vibes; tông giấy trắng ngà và chữ đỏ theo ảnh tham khảo, chỉ 2 sticker hoa nhỏ (1 hoa hồng, 1 tulip), 1 nơ hồng và nét tim mảnh phân bố ở viền, cùng sao vàng nhạt trong ảnh. Font Great Vibes được lưu kèm theo giấy phép OFL trong assets/.
 - Khi đóng photobooth hoặc chuyển ứng dụng, những tấm đã chụp vẫn được giữ để chụp tiếp.
 - Camera chỉ bật sau khi nhấn nút, tự tắt khi chụp xong, đóng photobooth hoặc chuyển ứng dụng. Ảnh được xử lý trên thiết bị, không gửi lên máy chủ.
 

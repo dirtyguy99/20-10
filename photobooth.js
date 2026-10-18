@@ -23,13 +23,13 @@
   let decoration = [];
 
   function randomizeDecoration() {
-    const types = ['rose', 'tulip', 'bow', 'rose', 'tulip', 'bow', 'rose', 'bow'];
-    // Opposite corners at each shared seam keep neighbouring stickers from colliding.
+    // Just two floral stickers and one small bow across the whole four-photo strip.
+    const types = ['rose', 'tulip', 'bow', null];
     const reverse = Math.random() > .5;
     for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [types[i], types[j]] = [types[j], types[i]]; }
     decoration = Array.from({length: 4}, (_, i) => ({
       reverse,
-      stickers: [0, 1].map(j => ({type: types[i * 2 + j], angle: (Math.random() - .5) * .5})),
+      stickers: types[i] ? [{type: types[i], angle: (Math.random() - .5) * .35}] : [],
       stars: Array.from({length: 8}, (_, j) => ({
         x: j % 2 ? 485 + Math.random() * 90 : 24 + Math.random() * 90,
         y: 24 + Math.random() * 390, size: 8 + Math.random() * 7, angle: Math.random() * .5
@@ -67,7 +67,7 @@
     ctx.fillStyle = color; ctx.fill(); ctx.restore();
   }
   function sticker(type, x, y, angle) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.lineJoin = ctx.lineCap = 'round';
+    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(.7, .7); ctx.lineJoin = ctx.lineCap = 'round';
     const shape = (d, fill) => { const p = new Path2D(d); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.stroke(p); ctx.fillStyle = fill; ctx.fill(p); };
     if (type === 'bow') {
       shape('M-5 2Q-5 31-21 53L-28 37-45 39Q-24 24-16-3Z', '#e899b9');
@@ -81,12 +81,12 @@
       shape('M3 27Q-35 1-27 25Q-15 44 8 38Z', '#95b095');
       shape('M8 39Q36 5 34 27Q28 44 10 46Z', '#7d9f80');
       if (type === 'tulip') {
-        shape('M0 8Q-36-2-29-42L-9-28 0-48 12-27 32-39Q36 0 0 8Z', '#ec8dac');
-        ctx.fillStyle = '#f7b4c8'; ctx.fill(new Path2D('M0 5Q-23-7-9-28Q5-15 0 5Z'));
-        ctx.strokeStyle = '#cf648c'; ctx.lineWidth = 2; ctx.stroke(new Path2D('M0 4Q14-7 12-27'));
+        shape('M0 8Q-36-2-29-42L-9-28 0-48 12-27 32-39Q36 0 0 8Z', '#c85f6b');
+        ctx.fillStyle = '#e69a9f'; ctx.fill(new Path2D('M0 5Q-23-7-9-28Q5-15 0 5Z'));
+        ctx.strokeStyle = '#a73e4b'; ctx.lineWidth = 2; ctx.stroke(new Path2D('M0 4Q14-7 12-27'));
       } else {
-        shape('M-28 6Q-43-4-30-20Q-36-36-15-37Q0-50 17-36Q38-39 35-18Q47-3 28 10Q17 26 0 17Q-19 27-28 6Z', '#d35c7c');
-        ctx.strokeStyle = '#f7b0be'; ctx.lineWidth = 3;
+        shape('M-28 6Q-43-4-30-20Q-36-36-15-37Q0-50 17-36Q38-39 35-18Q47-3 28 10Q17 26 0 17Q-19 27-28 6Z', '#b43b49');
+        ctx.strokeStyle = '#efa4ab'; ctx.lineWidth = 3;
         ['M-27-15Q-19-31-2-22Q13-33 25-19Q32-7 19 4Q8 16-5 9Q-25 14-27-4','M-18-7Q-19-23-3-23Q13-25 17-10Q20 4 4 7Q-8 12-15 0','M-8-13Q4-21 9-10L3-1-7-3Z'].forEach(d => ctx.stroke(new Path2D(d)));
       }
     }
@@ -107,29 +107,30 @@
     edge(x + w, y + h, -1, 0, w, 0, -1); edge(x, y + h, 0, -1, h, 1, 0);
     path.closePath(); return path;
   }
-  function daisy(x, y, size) {
-    ctx.save(); ctx.translate(x, y); ctx.fillStyle = '#e8d9ac';
-    for (let i = 0; i < 8; i++) {
-      ctx.rotate(Math.PI / 4); ctx.beginPath(); ctx.ellipse(size * .62, 0, size * .65, size * .11, 0, 0, Math.PI * 2); ctx.fill();
-    }
+  function inkHeart(x, y) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(-.12);
+    ctx.strokeStyle = '#ad3d43'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+    ctx.stroke(new Path2D('M0 13C-49-12-27-49 0-20C27-48 48-11 0 13M2 16C-43-7-29-43-2-18C25-46 48-10 2 16'));
     ctx.restore();
   }
   function drawStrip() {
     // A straight white outer border surrounds the warm paper and scalloped photo windows.
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, strip.width, strip.height);
-    ctx.fillStyle = '#fffdf5'; ctx.fillRect(22, 22, strip.width - 44, strip.height - 44);
-    ctx.fillStyle = '#8e3654'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#faf9f5'; ctx.fillRect(22, 22, strip.width - 44, strip.height - 44);
+    ctx.fillStyle = '#ab3039'; ctx.textAlign = 'center';
     ctx.font = '500 56px "Playfair Display", Georgia, serif'; ctx.fillText('20/10', 360, 94);
     ctx.font = '96px "Great Vibes", cursive'; ctx.fillText('Womens Day', 360, 188, 520);
-    daisy(55, 61, 27); daisy(658, 137, 26);
+    // Fine red pen strokes echo the reference without adding labels or a footer.
+    ctx.strokeStyle = '#b54b51'; ctx.lineWidth = 1.4;
+    ctx.stroke(new Path2D('M225 209C278 193 378 220 491 201M487 202Q507 195 502 210'));
     for (let i = 0; i < 4; i++) {
       const y = firstY + i * pitch, design = decoration[i];
       ctx.save(); ctx.clip(scallopedPath(photoX, y, photoWidth, photoHeight));
       if (photos[i]) ctx.drawImage(photos[i], photoX, y, photoWidth, photoHeight);
       else {
-        ctx.fillStyle = '#f0e3e5'; ctx.fillRect(photoX, y, photoWidth, photoHeight);
-        heart(360, y + photoHeight / 2, 38, '#c99aa9');
-        ctx.fillStyle = '#966477'; ctx.font = '22px "Be Vietnam Pro", Arial, sans-serif';
+        ctx.fillStyle = '#eae7e5'; ctx.fillRect(photoX, y, photoWidth, photoHeight);
+        heart(360, y + photoHeight / 2, 38, '#bc8b8c');
+        ctx.fillStyle = '#8d6669'; ctx.font = '22px "Be Vietnam Pro", Arial, sans-serif';
         ctx.fillText(`Tấm ${i + 1}`, 360, y + photoHeight / 2 + 48);
       }
       if (photos[i]) {
@@ -137,12 +138,12 @@
         design.stars.forEach(s => ctx.fill(starPath(photoX + s.x, y + s.y, s.size, s.angle)));
       }
       ctx.restore();
-      if (design) {
-        const leftFirst = design.reverse ? 650 : 62, rightSecond = design.reverse ? 62 : 650;
-        sticker(design.stickers[0].type, leftFirst, y + 8, design.stickers[0].angle);
-        sticker(design.stickers[1].type, rightSecond, y + photoHeight - 12, design.stickers[1].angle);
+      if (design?.stickers.length) {
+        const x = (i % 2 === 0) !== design.reverse ? 62 : 650;
+        sticker(design.stickers[0].type, x, y + 10, design.stickers[0].angle);
+      } else {
+        inkHeart(design?.reverse ? 62 : 650, y + photoHeight - 8);
       }
-      daisy(i % 2 ? 685 : 35, y + photoHeight * .63, 16);
     }
     // Leave the foot of the strip clean, as requested: no message or signature.
   }
