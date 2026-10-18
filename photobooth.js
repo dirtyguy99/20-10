@@ -10,7 +10,7 @@
   const countdown = $('#boothCountdown'), shotLabel = $('#boothShotLabel');
   const strip = $('#boothStrip'), ctx = strip.getContext('2d');
   const save = $('#boothSave'), original = $('#boothOriginal');
-  const photoWidth = 600, photoHeight = 600, photoX = 60, firstY = 236, pitch = 636;
+  const photoWidth = 600, photoHeight = 440, photoX = 60, firstY = 236, pitch = 476;
   let stream = null, generation = 0, photos = [], imageUrl = null;
   let facing = 'user', shooting = false, requesting = false;
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -116,7 +116,7 @@
     ctx.restore();
   }
   function ribbonFrame(y) {
-    ctx.save(); ctx.translate(photoX, y);
+    ctx.save(); ctx.translate(photoX, y); ctx.scale(photoWidth / 600, photoHeight / 600);
     ctx.strokeStyle = '#b04d53'; ctx.lineWidth = 2; ctx.lineCap = ctx.lineJoin = 'round';
     // Two loose red pen strokes with loops at opposite corners, like the reference.
     ctx.stroke(new Path2D('M-13-10C-43-52-19-43 3 5C86 28 250-9 430 16M3 5C25 120-18 267-37 374'));
