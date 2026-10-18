@@ -23,13 +23,15 @@
   let decoration = [];
 
   function randomizeDecoration() {
-    // Just two floral stickers and one small bow across the whole four-photo strip.
-    const types = ['rose', 'tulip', 'bow', null];
+    // One small flower per photo, plus a single bow for the whole strip.
+    const types = ['rose', 'tulip', 'rose', 'tulip'];
     const reverse = Math.random() > .5;
+    const bowFrame = Math.floor(Math.random() * 4);
     for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [types[i], types[j]] = [types[j], types[i]]; }
     decoration = Array.from({length: 4}, (_, i) => ({
       reverse,
-      stickers: types[i] ? [{type: types[i], angle: (Math.random() - .5) * .35}] : [],
+      bow: i === bowFrame,
+      stickers: [{type: types[i], angle: (Math.random() - .5) * .35}],
       stars: Array.from({length: 8}, (_, j) => ({
         x: j % 2 ? 485 + Math.random() * 90 : 24 + Math.random() * 90,
         y: 24 + Math.random() * 390, size: 8 + Math.random() * 7, angle: Math.random() * .5
@@ -113,10 +115,35 @@
     ctx.stroke(new Path2D('M0 13C-49-12-27-49 0-20C27-48 48-11 0 13M2 16C-43-7-29-43-2-18C25-46 48-10 2 16'));
     ctx.restore();
   }
+  function drawPaperWords() {
+    ctx.save();
+    // The handwriting is printed on the paper behind the photo windows only.
+    ctx.beginPath(); ctx.rect(22, 218, strip.width - 44, 1908); ctx.clip();
+    ctx.font = '44px "Great Vibes", cursive'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#ac3e48'; ctx.globalAlpha = .48;
+    for (let row = 0; row < 15; row++) {
+      for (let column = -1; column < 4; column++) {
+        ctx.save(); ctx.translate(40 + column * 245 + (row % 2) * 72, 265 + row * 137);
+        ctx.rotate(-.22); ctx.fillText("it's always you", 0, 0); ctx.restore();
+      }
+    }
+    // Keep a complete, readable phrase in the three paper gaps between photos.
+    for (let i = 0; i < 3; i++) {
+      const y = firstY + photoHeight + i * pitch;
+      ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = '#faf9f5';
+      ctx.fillRect(photoX, y, photoWidth, pitch - photoHeight);
+      ctx.globalAlpha = .55; ctx.fillStyle = '#ac3e48';
+      ctx.font = '32px "Great Vibes", cursive'; ctx.textAlign = 'center';
+      ctx.translate(360, y + 26); ctx.rotate(-.035);
+      ctx.fillText("it's always you", 0, 0); ctx.restore();
+    }
+    ctx.restore();
+  }
   function drawStrip() {
     // A straight white outer border surrounds the warm paper and scalloped photo windows.
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, strip.width, strip.height);
     ctx.fillStyle = '#faf9f5'; ctx.fillRect(22, 22, strip.width - 44, strip.height - 44);
+    drawPaperWords();
     ctx.fillStyle = '#ab3039'; ctx.textAlign = 'center';
     ctx.font = '500 56px "Playfair Display", Georgia, serif'; ctx.fillText('20/10', 360, 94);
     ctx.font = '96px "Great Vibes", cursive'; ctx.fillText('Womens Day', 360, 188, 520);
@@ -141,8 +168,8 @@
       if (design?.stickers.length) {
         const x = (i % 2 === 0) !== design.reverse ? 62 : 650;
         sticker(design.stickers[0].type, x, y + 10, design.stickers[0].angle);
-      } else {
-        inkHeart(design?.reverse ? 62 : 650, y + photoHeight - 8);
+        if (design.bow) sticker('bow', x === 62 ? 650 : 62, y + photoHeight - 100, -.12);
+        if (i === 2) inkHeart(x === 62 ? 650 : 62, y + photoHeight - 50);
       }
     }
     // Leave the foot of the strip clean, as requested: no message or signature.
